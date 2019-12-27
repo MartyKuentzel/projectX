@@ -14,6 +14,11 @@ go run cmd/server/main.go -db-password=xxx -log-level=-1 -log-time-format=2006-0
 go run cmd/client-grpc/main.go -server=localhost:8080
 ```
 
+## Run with Docker
+```
+docker run -d -p 7000:8080 -v credentials.json:/app/credentials.json -e instances='XXX' -e dbPw='XXX' gcr.io/mytests-262609/goserver:1.0
+````
+
 ## Deploy application on Kubernetes
 ```
 export my_zone=us-central1-a  
