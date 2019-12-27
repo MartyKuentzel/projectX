@@ -31,4 +31,4 @@ RUN go build /app/cmd/server/main.go
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
-CMD ./my_wrapper_script.sh ${instances} credentials.json ${dbPw}
+ENTRYPOINT ["./my_wrapper_script.sh"]

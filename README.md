@@ -6,7 +6,7 @@
 
 ## Start Server
 ```
-go run cmd/server/main.go -db-password= -log-level=-1 -log-time-format=2006-01-02T15:04:05.999999999Z07:00
+go run cmd/server/main.go -db-password=xxx -log-level=-1 -log-time-format=2006-01-02T15:04:05.999999999Z07:00 -db-host=xxx
 ```
 
 ## Start Client
@@ -14,8 +14,24 @@ go run cmd/server/main.go -db-password= -log-level=-1 -log-time-format=2006-01-0
 go run cmd/client-grpc/main.go -server=localhost:8080
 ```
 
-## Run Dockerfile
+## Deploay application on Kubernetes
 ```
-docker run -d -p 8080:8080 -v ${PWD}/credentials.json:/app/credentials.json -e instances='XXX' -e dbPw='XXX'
+export my_zone=us-central1-a  
+export my_cluster=standard-cluster-1  
+
+gcloud container clusters create $my_cluster \  
+  --num-nodes 1 --zone $my_zone  
+  
+gcloud container clusters get-credentials $my_cluster --zone $my_zone  
+
+kubectl create secret generic grpc-project-x-key \  
+ --from-file=key.json=credentials.json  
+
+kubectl create secret generic cloudsql-pw \  
+ --from-literal=rootPw=XXX  
+ 
+kubectl create configmap myconfigmap --from-literal=cloudSqlInstance=XXX  
+
+kubectl applay -f deployment.yaml  
 ```
 
