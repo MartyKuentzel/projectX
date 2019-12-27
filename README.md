@@ -14,7 +14,7 @@ go run cmd/server/main.go -db-password=xxx -log-level=-1 -log-time-format=2006-0
 go run cmd/client-grpc/main.go -server=localhost:8080
 ```
 
-## Deploay application on Kubernetes
+## Deploy application on Kubernetes
 ```
 export my_zone=us-central1-a  
 export my_cluster=standard-cluster-1  
