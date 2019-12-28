@@ -1,4 +1,4 @@
-# Golang GRPC-API
+# Golang gRPC-API
 
 ## Start Proxy
 ```
