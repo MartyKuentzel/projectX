@@ -1,7 +1,7 @@
 # Dockerfile References: https://docs.docker.com/engine/reference/builder/
 
 # Start from the latest golang base image
-FROM golang:latest
+FROM golang:latest as builder
 
 # Add Maintainer Info
 LABEL maintainer="Marty Kuentzel"
@@ -20,15 +20,23 @@ COPY api api
 COPY pkg pkg
 COPY cmd cmd 
 COPY third_party third_party
-COPY my_wrapper_script.sh .
-
-RUN wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy \
-    && chmod +x cloud_sql_proxy my_wrapper_script.sh
 
 # Build the Go app
-RUN go build /app/cmd/server/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo /app/cmd/server/main.go
+
+
+######## Start a new stage from scratch #######
+FROM alpine:latest  
+
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /root/
+
+# Copy the Pre-built binary file from the previous stage
+COPY --from=builder /app/main .
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
-ENTRYPOINT ["./my_wrapper_script.sh"]
+# Command to run the executable
+ENTRYPOINT ["./main"]

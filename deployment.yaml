@@ -11,7 +11,7 @@ spec:
   selector:
     app: grpc-project-x
   type: LoadBalancer
----
+---  
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,30 +25,34 @@ spec:
       labels:
         app: grpc-project-x
     spec:
-      volumes:
-      - name: google-cloud-key
-        secret:
-          secretName: grpc-project-x-key
-      - name: cloudsql-pw
-        secret:
-          secretName: cloudsql-pw
       containers:
-      - name: goserver
-        image: gcr.io/mytests-262609/goserver:4.0
-        volumeMounts:
-        - name: google-cloud-key
-          mountPath: /var/secrets/google
-          readOnly: true
-        - name: cloudsql-pw
-          mountPath: /var/secrets
-          readOnly: true
-        env:
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /var/secrets/google/key.json
-        - name: CLOUDSQL_ROOT_CREDENTIALS
-          value: /var/secrets/rootPw
-        - name: INSTANCE
-          valueFrom:
-            configMapKeyRef:
-                name: myconfigmap
-                key: cloudSqlInstance
+        - name: goserver
+          image: gcr.io/mytests-262609/goserver:9.0
+          args: [ "-db-password=$(GOSERVER_DB_PASSWORD)","-log-level=-1", "-log-time-format=2006-01-02T15:04:05.999999999Z07:00" ]
+          env:
+            - name: GOSERVER_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cloudsql-pw
+                  key: rootPw
+        - name: cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.16
+          command: ["/cloud_sql_proxy"]
+          args: [ "-instances=$(INSTANCE)=tcp:3306", "-credential_file=/secrets/cloudsql/credentials.json"]
+          securityContext:
+            runAsUser: 2  # non-root user
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: cloudsql-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+          env:
+            - name: INSTANCE
+              valueFrom:
+                configMapKeyRef:
+                    name: myconfigmap
+                    key: cloudSqlInstance
+      volumes:
+        - name: cloudsql-instance-credentials
+          secret:
+            secretName: grpc-project-x-key
