@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: goserver
-          image: gcr.io/mytests-262609/goserver:9.0
+          image: gcr.io/mytests-262609/github.com/martykuentzel/projectx:latest
           args: [ "-db-password=$(GOSERVER_DB_PASSWORD)","-log-level=-1", "-log-time-format=2006-01-02T15:04:05.999999999Z07:00" ]
           env:
             - name: GOSERVER_DB_PASSWORD
