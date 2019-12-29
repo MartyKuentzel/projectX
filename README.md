@@ -31,7 +31,7 @@ gcloud container clusters create $my_cluster \
 gcloud container clusters get-credentials $my_cluster --zone $my_zone  
 
 kubectl create secret generic grpc-project-x-key \  
- --from-file=key.json=credentials.json  
+ --from-file=credentials.json=credentials.json  
 
 kubectl create secret generic cloudsql-pw \  
  --from-literal=rootPw=XXX  
