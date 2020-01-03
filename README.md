@@ -7,7 +7,7 @@
 
 ## Start Server
 ```
-go run cmd/server/main.go -db-password=xxx -log-level=-1 -log-time-format=2006-01-02T15:04:05.999999999Z07:00 -db-host=xxx
+go run cmd/server/main.go -db-password=xxx -log-level=-1 -log-time-format=2006-01-02T15:04:05.999999999Z07:00
 ```
 
 ## Start Client

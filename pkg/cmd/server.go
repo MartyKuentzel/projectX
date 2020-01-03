@@ -44,7 +44,7 @@ func RunServer() error {
 	// get configuration
 	var cfg Config
 	flag.StringVar(&cfg.GRPCPort, "grpc-port", "8080", "gRPC port to bind")
-	flag.StringVar(&cfg.DatastoreDBHost, "db-host", "", "Database host")
+	flag.StringVar(&cfg.DatastoreDBHost, "db-host", "127.0.0.1:3306", "Database host")
 	flag.StringVar(&cfg.DatastoreDBUser, "db-user", "root", "Database user")
 	flag.StringVar(&cfg.DatastoreDBPassword, "db-password", "", "Database password")
 	flag.StringVar(&cfg.DatastoreDBName, "db-name", "DB_1", "Database Name")
@@ -75,7 +75,7 @@ func RunServer() error {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s",
 		cfg.DatastoreDBUser,
 		cfg.DatastoreDBPassword,
-		"127.0.0.1:3306",
+		cfg.DatastoreDBHost,
 		cfg.DatastoreDBName,
 		param)
 

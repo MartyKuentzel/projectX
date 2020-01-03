@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/MartyKuentzel/projectX/pkg/api/v1"
+	"github.com/MartyKuentzel/projectX/pkg/logger"
 )
 
 const (
@@ -49,6 +50,22 @@ func (s *toDoServiceServer) connect(ctx context.Context) (*sql.Conn, error) {
 	return c, nil
 }
 
+// connect returns SQL database connection from the pool
+func (s *toDoServiceServer) createTable(ctx context.Context, c *sql.Conn) error {
+
+	_, err := c.ExecContext(ctx, "CREATE TABLE `ToDo` (`ID` bigint(20) NOT NULL AUTO_INCREMENT,"+
+		"`Title` varchar(200) DEFAULT NULL,"+
+		"`Description` varchar(1024) DEFAULT NULL,"+
+		"`Reminder` timestamp NULL DEFAULT NULL,"+
+		"PRIMARY KEY (`ID`),"+
+		"UNIQUE KEY `ID_UNIQUE` (`ID`))")
+
+	if err != nil {
+		return status.Error(codes.Unknown, "failed to create table -> "+err.Error())
+	}
+	return nil
+}
+
 // Create new todo task
 func (s *toDoServiceServer) Create(ctx context.Context, req *v1.CreateRequest) (*v1.CreateResponse, error) {
 	// check if the API version requested by client is supported by server
@@ -66,6 +83,15 @@ func (s *toDoServiceServer) Create(ctx context.Context, req *v1.CreateRequest) (
 	reminder, err := ptypes.Timestamp(req.ToDo.Reminder)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "reminder field has invalid format-> "+err.Error())
+	}
+	_, err = c.ExecContext(ctx, "SELECT 1 FROM ToDo LIMIT 1 ;")
+
+	if err != nil {
+		logger.Log.Warn("Table 'ToDo' doesn't exist: It will be created now.")
+		err = s.createTable(ctx, c)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// insert ToDo entity data
