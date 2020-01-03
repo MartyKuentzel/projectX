@@ -1,5 +1,6 @@
 credentials.json
 cloud_sql_proxy
 main
+out.pb
 .*
 !/.gitignore
