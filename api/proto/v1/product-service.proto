@@ -3,36 +3,29 @@ package v1;
 
 import "google/protobuf/timestamp.proto";
 
-// Taks we have to do
-message ToDo {
-    // Unique integer identifier of the todo task
+
+message ProductProto {
     int64 id = 1;
-
-    // Title of the task
-    string title = 2;
-
-    // Detail description of the todo task
-    string description = 3;
-
-    // Date and time to remind the todo task
-    google.protobuf.Timestamp reminder = 4;
+    string name = 2;
+    string price = 3;
+    string creator = 4;
+    string unit = 5;
+    string description = 6;
+    string category = 7;
+    google.protobuf.Timestamp date = 8;
 }
 
 // Request data to create new todo task
 message CreateRequest{
     // API versioning: it is my best practice to specify version explicitly
     string api = 1;
-
-    // Task entity to add
-    ToDo toDo = 2;
+    ProductProto product = 2;
 }
 
 // Contains data of created todo task
 message CreateResponse{
     // API versioning: it is my best practice to specify version explicitly
     string api = 1;
-
-    // ID of created task
     int64 id = 2;
 }
 
@@ -40,8 +33,6 @@ message CreateResponse{
 message ReadRequest{
     // API versioning: it is my best practice to specify version explicitly
     string api = 1;
-
-    // Unique integer identifier of the todo task
     int64 id = 2;
 }
 
@@ -49,18 +40,14 @@ message ReadRequest{
 message ReadResponse{
     // API versioning: it is my best practice to specify version explicitly
     string api = 1;
-
-    // Task entity read by ID
-    ToDo toDo = 2;
+    ProductProto product = 2;
 }
 
 // Request data to update todo task
 message UpdateRequest{
     // API versioning: it is my best practice to specify version explicitly
     string api = 1;
-
-    // Task entity to update
-    ToDo toDo = 2;
+    ProductProto product = 2;
 }
 
 // Contains status of update operation
@@ -68,7 +55,6 @@ message UpdateResponse{
     // API versioning: it is my best practice to specify version explicitly
     string api = 1;
 
-    // Contains number of entities have beed updated
     // Equals 1 in case of succesfull update
     int64 updated = 2;
 }
@@ -77,8 +63,6 @@ message UpdateResponse{
 message DeleteRequest{
     // API versioning: it is my best practice to specify version explicitly
     string api = 1;
-
-    // Unique integer identifier of the todo task to delete
     int64 id = 2;
 }
 
@@ -86,8 +70,6 @@ message DeleteRequest{
 message DeleteResponse{
     // API versioning: it is my best practice to specify version explicitly
     string api = 1;
-
-    // Contains number of entities have beed deleted
     // Equals 1 in case of succesfull delete
     int64 deleted = 2;
 }
@@ -102,13 +84,11 @@ message ReadAllRequest{
 message ReadAllResponse{
     // API versioning: it is my best practice to specify version explicitly
     string api = 1;
-
-    // List of all todo tasks
-    repeated ToDo toDos = 2;
+    repeated ProductProto products = 2;
 }
 
 // Service to manage list of todo tasks
-service ToDoService {
+service ProductService {
     // Create new todo task
     rpc Create(CreateRequest) returns (CreateResponse);
 

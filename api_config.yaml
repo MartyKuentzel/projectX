@@ -27,7 +27,7 @@ name: go.endpoints.backend-go-263915.cloud.goog
 # API title to appear in the user interface (Google Cloud Console).
 title: Go gRPC API
 apis:
-  - name: v1.ToDoService
+  - name: v1.ProductService
 
 # API usage restrictions
 usage:

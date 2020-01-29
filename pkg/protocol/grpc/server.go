@@ -9,13 +9,13 @@ import (
 
 	"google.golang.org/grpc"
 
+	v1 "github.com/MartyKuentzel/projectX/pkg/api/v1"
 	"github.com/MartyKuentzel/projectX/pkg/logger"
 	"github.com/MartyKuentzel/projectX/pkg/protocol/grpc/middleware"
-	"github.com/MartyKuentzel/projectX/pkg/api/v1"
 )
 
-// RunServer runs gRPC service to publish ToDo service
-func RunServer(ctx context.Context, v1API v1.ToDoServiceServer, port string) error {
+// RunServer runs gRPC service to publish Product service
+func RunServer(ctx context.Context, v1API v1.ProductServiceServer, port string) error {
 	listen, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		return err
@@ -30,7 +30,7 @@ func RunServer(ctx context.Context, v1API v1.ToDoServiceServer, port string) err
 	// register service
 	server := grpc.NewServer(opts...)
 
-	v1.RegisterToDoServiceServer(server, v1API)
+	v1.RegisterProductServiceServer(server, v1API)
 
 	// graceful shutdown
 	c := make(chan os.Signal, 1)

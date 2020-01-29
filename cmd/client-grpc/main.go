@@ -9,7 +9,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/grpc"
 
-	"github.com/MartyKuentzel/projectX/pkg/api/v1"
+	v1 "github.com/MartyKuentzel/projectX/pkg/api/v1"
 )
 
 const (
@@ -29,22 +29,25 @@ func main() {
 	}
 	defer conn.Close()
 
-	c := v1.NewToDoServiceClient(conn)
+	c := v1.NewProductServiceClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	t := time.Now().In(time.UTC)
-	reminder, _ := ptypes.TimestampProto(t)
-	pfx := t.Format(time.RFC3339Nano)
+	date, _ := ptypes.TimestampProto(t)
 
 	// Call Create
 	req1 := v1.CreateRequest{
 		Api: apiVersion,
-		ToDo: &v1.ToDo{
-			Title:       "title (" + pfx + ")",
-			Description: "description (" + pfx + ")",
-			Reminder:    reminder,
+		Product: &v1.ProductProto{
+			Name:        "Potato",
+			Description: "Buy my Potato",
+			Price:       "5€",
+			Creator:     "Marty",
+			Date:        date,
+			Unit:        "Kg",
+			Category:    "vegetable",
 		},
 	}
 	res1, err := c.Create(ctx, &req1)
@@ -69,11 +72,15 @@ func main() {
 	// Update
 	req3 := v1.UpdateRequest{
 		Api: apiVersion,
-		ToDo: &v1.ToDo{
-			Id:          res2.ToDo.Id,
-			Title:       res2.ToDo.Title,
-			Description: res2.ToDo.Description + " + updated",
-			Reminder:    res2.ToDo.Reminder,
+		Product: &v1.ProductProto{
+			Id:          res2.Product.Id,
+			Name:        res2.Product.Name,
+			Price:       res2.Product.Price,
+			Unit:        res2.Product.Unit,
+			Category:    res2.Product.Category,
+			Creator:     res2.Product.Creator,
+			Description: res2.Product.Description + " + updated",
+			Date:        res2.Product.Date,
 		},
 	}
 	res3, err := c.Update(ctx, &req3)
@@ -92,14 +99,14 @@ func main() {
 	}
 	log.Printf("ReadAll result: <%+v>\n\n", res4)
 
-	// Delete
-	req5 := v1.DeleteRequest{
-		Api: apiVersion,
-		Id:  id,
-	}
-	res5, err := c.Delete(ctx, &req5)
-	if err != nil {
-		log.Fatalf("Delete failed: %v", err)
-	}
-	log.Printf("Delete result: <%+v>\n\n", res5)
+	// // Delete
+	// req5 := v1.DeleteRequest{
+	// 	Api: apiVersion,
+	// 	Id:  id,
+	// }
+	// res5, err := c.Delete(ctx, &req5)
+	// if err != nil {
+	// 	log.Fatalf("Delete failed: %v", err)
+	// }
+	// log.Printf("Delete result: <%+v>\n\n", res5)
 }

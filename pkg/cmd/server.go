@@ -11,7 +11,7 @@ import (
 	//	"github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/mysql"
 	"github.com/MartyKuentzel/projectX/pkg/logger"
 	"github.com/MartyKuentzel/projectX/pkg/protocol/grpc"
-	"github.com/MartyKuentzel/projectX/pkg/service/v1"
+	v1 "github.com/MartyKuentzel/projectX/pkg/service/v1"
 )
 
 // Config is configuration for Server
@@ -85,7 +85,7 @@ func RunServer() error {
 	}
 	defer db.Close()
 
-	v1API := v1.NewToDoServiceServer(db)
+	v1API := v1.NewProductServiceServer(db)
 
 	return grpc.RunServer(ctx, v1API, cfg.GRPCPort)
 }

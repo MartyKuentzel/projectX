@@ -7,23 +7,22 @@ import (
 	"testing"
 	"time"
 
+	v1 "github.com/MartyKuentzel/projectX/pkg/api/v1"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
-
-	"github.com/MartyKuentzel/projectX/pkg/api/v1"
 )
 
-func Test_toDoServiceServer_Create(t *testing.T) {
+func Test_productoServiceServer_Create(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
-	s := NewToDoServiceServer(db)
+	s := NewProductServiceServer(db)
 	tm := time.Now().In(time.UTC)
-	reminder, _ := ptypes.TimestampProto(tm)
+	date, _ := ptypes.TimestampProto(tm)
 
 	type args struct {
 		ctx context.Context
@@ -31,7 +30,7 @@ func Test_toDoServiceServer_Create(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		s       v1.ToDoServiceServer
+		s       v1.ProductServiceServer
 		args    args
 		mock    func()
 		want    *v1.CreateResponse
@@ -44,15 +43,15 @@ func Test_toDoServiceServer_Create(t *testing.T) {
 				ctx: ctx,
 				req: &v1.CreateRequest{
 					Api: "v1",
-					ToDo: &v1.ToDo{
-						Title:       "title",
-						Description: "description",
-						Reminder:    reminder,
+					Product: &v1.ProductProto{
+						Name:        "Name",
+						Description: "Description",
+						Date:        date,
 					},
 				},
 			},
 			mock: func() {
-				mock.ExpectExec("INSERT INTO ToDo").WithArgs("title", "description", tm).
+				mock.ExpectExec("INSERT INTO Product").WithArgs("Name", "Description", tm).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
 			want: &v1.CreateResponse{
@@ -67,10 +66,10 @@ func Test_toDoServiceServer_Create(t *testing.T) {
 				ctx: ctx,
 				req: &v1.CreateRequest{
 					Api: "v1000",
-					ToDo: &v1.ToDo{
-						Title:       "title",
-						Description: "description",
-						Reminder: &timestamp.Timestamp{
+					Product: &v1.ProductProto{
+						Name:        "Name",
+						Description: "Description",
+						Date: &timestamp.Timestamp{
 							Seconds: 1,
 							Nanos:   -1,
 						},
@@ -81,16 +80,16 @@ func Test_toDoServiceServer_Create(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Invalid Reminder field format",
+			name: "Invalid Date field format",
 			s:    s,
 			args: args{
 				ctx: ctx,
 				req: &v1.CreateRequest{
 					Api: "v1",
-					ToDo: &v1.ToDo{
-						Title:       "title",
-						Description: "description",
-						Reminder: &timestamp.Timestamp{
+					Product: &v1.ProductProto{
+						Name:        "Name",
+						Description: "Description",
+						Date: &timestamp.Timestamp{
 							Seconds: 1,
 							Nanos:   -1,
 						},
@@ -107,15 +106,15 @@ func Test_toDoServiceServer_Create(t *testing.T) {
 				ctx: ctx,
 				req: &v1.CreateRequest{
 					Api: "v1",
-					ToDo: &v1.ToDo{
-						Title:       "title",
+					Product: &v1.ProductProto{
+						Name:        "name",
 						Description: "description",
-						Reminder:    reminder,
+						Date:        date,
 					},
 				},
 			},
 			mock: func() {
-				mock.ExpectExec("INSERT INTO ToDo").WithArgs("title", "description", tm).
+				mock.ExpectExec("INSERT INTO Product").WithArgs("name", "description", tm).
 					WillReturnError(errors.New("INSERT failed"))
 			},
 			wantErr: true,
@@ -127,15 +126,15 @@ func Test_toDoServiceServer_Create(t *testing.T) {
 				ctx: ctx,
 				req: &v1.CreateRequest{
 					Api: "v1",
-					ToDo: &v1.ToDo{
-						Title:       "title",
+					Product: &v1.ProductProto{
+						Name:        "name",
 						Description: "description",
-						Reminder:    reminder,
+						Date:        date,
 					},
 				},
 			},
 			mock: func() {
-				mock.ExpectExec("INSERT INTO ToDo").WithArgs("title", "description", tm).
+				mock.ExpectExec("INSERT INTO Product").WithArgs("name", "description", tm).
 					WillReturnResult(sqlmock.NewErrorResult(errors.New("LastInsertId failed")))
 			},
 			wantErr: true,
@@ -146,26 +145,26 @@ func Test_toDoServiceServer_Create(t *testing.T) {
 			tt.mock()
 			got, err := tt.s.Create(tt.args.ctx, tt.args.req)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("toDoServiceServer.Create() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("productServiceServer.Create() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if err == nil && !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("toDoServiceServer.Create() = %v, want %v", got, tt.want)
+				t.Errorf("productServiceServer.Create() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func Test_toDoServiceServer_Read(t *testing.T) {
+func Test_productServiceServer_Read(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
-	s := NewToDoServiceServer(db)
+	s := NewProductServiceServer(db)
 	tm := time.Now().In(time.UTC)
-	reminder, _ := ptypes.TimestampProto(tm)
+	date, _ := ptypes.TimestampProto(tm)
 
 	type args struct {
 		ctx context.Context
@@ -173,7 +172,7 @@ func Test_toDoServiceServer_Read(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		s       v1.ToDoServiceServer
+		s       v1.ProductServiceServer
 		args    args
 		mock    func()
 		want    *v1.ReadResponse
@@ -190,17 +189,17 @@ func Test_toDoServiceServer_Read(t *testing.T) {
 				},
 			},
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"ID", "Title", "Description", "Reminder"}).
-					AddRow(1, "title", "description", tm)
-				mock.ExpectQuery("SELECT (.+) FROM ToDo").WithArgs(1).WillReturnRows(rows)
+				rows := sqlmock.NewRows([]string{"ID", "Name", "Description", "Date"}).
+					AddRow(1, "name", "description", tm)
+				mock.ExpectQuery("SELECT (.+) FROM Product").WithArgs(1).WillReturnRows(rows)
 			},
 			want: &v1.ReadResponse{
 				Api: "v1",
-				ToDo: &v1.ToDo{
+				Product: &v1.ProductProto{
 					Id:          1,
-					Title:       "title",
+					Name:        "name",
 					Description: "description",
-					Reminder:    reminder,
+					Date:        date,
 				},
 			},
 		},
@@ -228,7 +227,7 @@ func Test_toDoServiceServer_Read(t *testing.T) {
 				},
 			},
 			mock: func() {
-				mock.ExpectQuery("SELECT (.+) FROM ToDo").WithArgs(1).
+				mock.ExpectQuery("SELECT (.+) FROM Product").WithArgs(1).
 					WillReturnError(errors.New("SELECT failed"))
 			},
 			wantErr: true,
@@ -244,8 +243,8 @@ func Test_toDoServiceServer_Read(t *testing.T) {
 				},
 			},
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"ID", "Title", "Description", "Reminder"})
-				mock.ExpectQuery("SELECT (.+) FROM ToDo").WithArgs(1).WillReturnRows(rows)
+				rows := sqlmock.NewRows([]string{"ID", "Name", "Description", "Date"})
+				mock.ExpectQuery("SELECT (.+) FROM Product").WithArgs(1).WillReturnRows(rows)
 			},
 			wantErr: true,
 		},
@@ -255,27 +254,27 @@ func Test_toDoServiceServer_Read(t *testing.T) {
 			tt.mock()
 			got, err := tt.s.Read(tt.args.ctx, tt.args.req)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("toDoServiceServer.Read() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("productServiceServer.Read() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if err == nil && !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("toDoServiceServer.Read() = %v, want %v", got, tt.want)
+				t.Errorf("productServiceServer.Read() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func Test_toDoServiceServer_Update(t *testing.T) {
+func Test_productServiceServer_Update(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
-	s := NewToDoServiceServer(db)
+	s := NewProductServiceServer(db)
 	tm := time.Now().In(time.UTC)
-	reminder, _ := ptypes.TimestampProto(tm)
+	date, _ := ptypes.TimestampProto(tm)
 
 	type args struct {
 		ctx context.Context
@@ -283,7 +282,7 @@ func Test_toDoServiceServer_Update(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		s       v1.ToDoServiceServer
+		s       v1.ProductServiceServer
 		args    args
 		mock    func()
 		want    *v1.UpdateResponse
@@ -296,16 +295,16 @@ func Test_toDoServiceServer_Update(t *testing.T) {
 				ctx: ctx,
 				req: &v1.UpdateRequest{
 					Api: "v1",
-					ToDo: &v1.ToDo{
+					Product: &v1.ProductProto{
 						Id:          1,
-						Title:       "new title",
+						Name:        "new name",
 						Description: "new description",
-						Reminder:    reminder,
+						Date:        date,
 					},
 				},
 			},
 			mock: func() {
-				mock.ExpectExec("UPDATE ToDo").WithArgs("new title", "new description", tm, 1).
+				mock.ExpectExec("UPDATE Product").WithArgs("new name", "new description", tm, 1).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
 			want: &v1.UpdateResponse{
@@ -320,11 +319,11 @@ func Test_toDoServiceServer_Update(t *testing.T) {
 				ctx: ctx,
 				req: &v1.UpdateRequest{
 					Api: "v1",
-					ToDo: &v1.ToDo{
+					Product: &v1.ProductProto{
 						Id:          1,
-						Title:       "new title",
+						Name:        "new name",
 						Description: "new description",
-						Reminder:    reminder,
+						Date:        date,
 					},
 				},
 			},
@@ -332,17 +331,17 @@ func Test_toDoServiceServer_Update(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Invalid Reminder field format",
+			name: "Invalid Date field format",
 			s:    s,
 			args: args{
 				ctx: ctx,
 				req: &v1.UpdateRequest{
 					Api: "v1",
-					ToDo: &v1.ToDo{
+					Product: &v1.ProductProto{
 						Id:          1,
-						Title:       "new title",
+						Name:        "new name",
 						Description: "new description",
-						Reminder: &timestamp.Timestamp{
+						Date: &timestamp.Timestamp{
 							Seconds: 1,
 							Nanos:   -1,
 						},
@@ -359,16 +358,16 @@ func Test_toDoServiceServer_Update(t *testing.T) {
 				ctx: ctx,
 				req: &v1.UpdateRequest{
 					Api: "v1",
-					ToDo: &v1.ToDo{
+					Product: &v1.ProductProto{
 						Id:          1,
-						Title:       "new title",
+						Name:        "new name",
 						Description: "new description",
-						Reminder:    reminder,
+						Date:        date,
 					},
 				},
 			},
 			mock: func() {
-				mock.ExpectExec("UPDATE ToDo").WithArgs("new title", "new description", tm, 1).
+				mock.ExpectExec("UPDATE Product").WithArgs("new name", "new description", tm, 1).
 					WillReturnError(errors.New("UPDATE failed"))
 			},
 			wantErr: true,
@@ -380,16 +379,16 @@ func Test_toDoServiceServer_Update(t *testing.T) {
 				ctx: ctx,
 				req: &v1.UpdateRequest{
 					Api: "v1",
-					ToDo: &v1.ToDo{
+					Product: &v1.ProductProto{
 						Id:          1,
-						Title:       "new title",
+						Name:        "new name",
 						Description: "new description",
-						Reminder:    reminder,
+						Date:        date,
 					},
 				},
 			},
 			mock: func() {
-				mock.ExpectExec("UPDATE ToDo").WithArgs("new title", "new description", tm, 1).
+				mock.ExpectExec("UPDATE Product").WithArgs("new name", "new description", tm, 1).
 					WillReturnResult(sqlmock.NewErrorResult(errors.New("RowsAffected failed")))
 			},
 			wantErr: true,
@@ -401,16 +400,16 @@ func Test_toDoServiceServer_Update(t *testing.T) {
 				ctx: ctx,
 				req: &v1.UpdateRequest{
 					Api: "v1",
-					ToDo: &v1.ToDo{
+					Product: &v1.ProductProto{
 						Id:          1,
-						Title:       "new title",
+						Name:        "new name",
 						Description: "new description",
-						Reminder:    reminder,
+						Date:        date,
 					},
 				},
 			},
 			mock: func() {
-				mock.ExpectExec("UPDATE ToDo").WithArgs("new title", "new description", tm, 1).
+				mock.ExpectExec("UPDATE Product").WithArgs("new name", "new description", tm, 1).
 					WillReturnResult(sqlmock.NewResult(1, 0))
 			},
 			wantErr: true,
@@ -421,24 +420,24 @@ func Test_toDoServiceServer_Update(t *testing.T) {
 			tt.mock()
 			got, err := tt.s.Update(tt.args.ctx, tt.args.req)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("toDoServiceServer.Update() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("productServiceServer.Update() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if err == nil && !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("toDoServiceServer.Update() = %v, want %v", got, tt.want)
+				t.Errorf("productServiceServer.Update() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func Test_toDoServiceServer_Delete(t *testing.T) {
+func Test_productServiceServer_Delete(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
-	s := NewToDoServiceServer(db)
+	s := NewProductServiceServer(db)
 
 	type args struct {
 		ctx context.Context
@@ -446,7 +445,7 @@ func Test_toDoServiceServer_Delete(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		s       v1.ToDoServiceServer
+		s       v1.ProductServiceServer
 		args    args
 		mock    func()
 		want    *v1.DeleteResponse
@@ -463,7 +462,7 @@ func Test_toDoServiceServer_Delete(t *testing.T) {
 				},
 			},
 			mock: func() {
-				mock.ExpectExec("DELETE FROM ToDo").WithArgs(1).
+				mock.ExpectExec("DELETE FROM Product").WithArgs(1).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
 			want: &v1.DeleteResponse{
@@ -495,7 +494,7 @@ func Test_toDoServiceServer_Delete(t *testing.T) {
 				},
 			},
 			mock: func() {
-				mock.ExpectExec("DELETE FROM ToDo").WithArgs(1).
+				mock.ExpectExec("DELETE FROM Product").WithArgs(1).
 					WillReturnError(errors.New("DELETE failed"))
 			},
 			wantErr: true,
@@ -511,7 +510,7 @@ func Test_toDoServiceServer_Delete(t *testing.T) {
 				},
 			},
 			mock: func() {
-				mock.ExpectExec("DELETE FROM ToDo").WithArgs(1).
+				mock.ExpectExec("DELETE FROM Product").WithArgs(1).
 					WillReturnResult(sqlmock.NewErrorResult(errors.New("RowsAffected failed")))
 			},
 			wantErr: true,
@@ -527,7 +526,7 @@ func Test_toDoServiceServer_Delete(t *testing.T) {
 				},
 			},
 			mock: func() {
-				mock.ExpectExec("DELETE FROM ToDo").WithArgs(1).
+				mock.ExpectExec("DELETE FROM Product").WithArgs(1).
 					WillReturnResult(sqlmock.NewResult(1, 0))
 			},
 			wantErr: true,
@@ -538,28 +537,28 @@ func Test_toDoServiceServer_Delete(t *testing.T) {
 			tt.mock()
 			got, err := tt.s.Delete(tt.args.ctx, tt.args.req)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("toDoServiceServer.Delete() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("productServiceServer.Delete() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if err == nil && !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("toDoServiceServer.Delete() = %v, want %v", got, tt.want)
+				t.Errorf("productServiceServer.Delete() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func Test_toDoServiceServer_ReadAll(t *testing.T) {
+func Test_productServiceServer_ReadAll(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
-	s := NewToDoServiceServer(db)
+	s := NewProductServiceServer(db)
 	tm1 := time.Now().In(time.UTC)
-	reminder1, _ := ptypes.TimestampProto(tm1)
+	date1, _ := ptypes.TimestampProto(tm1)
 	tm2 := time.Now().In(time.UTC)
-	reminder2, _ := ptypes.TimestampProto(tm2)
+	date2, _ := ptypes.TimestampProto(tm2)
 
 	type args struct {
 		ctx context.Context
@@ -567,7 +566,7 @@ func Test_toDoServiceServer_ReadAll(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		s       v1.ToDoServiceServer
+		s       v1.ProductServiceServer
 		args    args
 		mock    func()
 		want    *v1.ReadAllResponse
@@ -583,25 +582,25 @@ func Test_toDoServiceServer_ReadAll(t *testing.T) {
 				},
 			},
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"ID", "Title", "Description", "Reminder"}).
-					AddRow(1, "title 1", "description 1", tm1).
-					AddRow(2, "title 2", "description 2", tm2)
-				mock.ExpectQuery("SELECT (.+) FROM ToDo").WillReturnRows(rows)
+				rows := sqlmock.NewRows([]string{"ID", "Name", "Description", "Date"}).
+					AddRow(1, "name 1", "description 1", tm1).
+					AddRow(2, "name 2", "description 2", tm2)
+				mock.ExpectQuery("SELECT (.+) FROM Product").WillReturnRows(rows)
 			},
 			want: &v1.ReadAllResponse{
 				Api: "v1",
-				ToDos: []*v1.ToDo{
+				Products: []*v1.ProductProto{
 					{
 						Id:          1,
-						Title:       "title 1",
+						Name:        "name 1",
 						Description: "description 1",
-						Reminder:    reminder1,
+						Date:        date1,
 					},
 					{
 						Id:          2,
-						Title:       "title 2",
+						Name:        "name 2",
 						Description: "description 2",
-						Reminder:    reminder2,
+						Date:        date2,
 					},
 				},
 			},
@@ -616,12 +615,12 @@ func Test_toDoServiceServer_ReadAll(t *testing.T) {
 				},
 			},
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"ID", "Title", "Description", "Reminder"})
-				mock.ExpectQuery("SELECT (.+) FROM ToDo").WillReturnRows(rows)
+				rows := sqlmock.NewRows([]string{"ID", "Name", "Description", "Date"})
+				mock.ExpectQuery("SELECT (.+) FROM Prodcut").WillReturnRows(rows)
 			},
 			want: &v1.ReadAllResponse{
-				Api:   "v1",
-				ToDos: []*v1.ToDo{},
+				Api:      "v1",
+				Products: []*v1.ProductProto{},
 			},
 		},
 		{
@@ -642,11 +641,11 @@ func Test_toDoServiceServer_ReadAll(t *testing.T) {
 			tt.mock()
 			got, err := tt.s.ReadAll(tt.args.ctx, tt.args.req)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("toDoServiceServer.ReadAll() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("productServiceServer.ReadAll() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("toDoServiceServer.ReadAll() = %v, want %v", got, tt.want)
+				t.Errorf("productServiceServer.ReadAll() = %v, want %v", got, tt.want)
 			}
 		})
 	}
