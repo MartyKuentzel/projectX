@@ -42,12 +42,12 @@ func main() {
 		Api: apiVersion,
 		Product: &v1.ProductProto{
 			Name:        "Potato",
-			Description: "Buy my Potato",
 			Price:       "5€",
 			Creator:     "Marty",
-			Date:        date,
 			Unit:        "Kg",
+			Description: "Buy my Potato",
 			Category:    "vegetable",
+			Date:        date,
 		},
 	}
 	res1, err := c.Create(ctx, &req1)
@@ -76,13 +76,14 @@ func main() {
 			Id:          res2.Product.Id,
 			Name:        res2.Product.Name,
 			Price:       res2.Product.Price,
+			Creator:     res2.Product.Creator + " + updated",
 			Unit:        res2.Product.Unit,
-			Category:    res2.Product.Category,
-			Creator:     res2.Product.Creator,
 			Description: res2.Product.Description + " + updated",
+			Category:    res2.Product.Category,
 			Date:        res2.Product.Date,
 		},
 	}
+
 	res3, err := c.Update(ctx, &req3)
 	if err != nil {
 		log.Fatalf("Update failed: %v", err)

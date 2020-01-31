@@ -150,7 +150,7 @@ func (s *productServiceServer) Read(ctx context.Context, req *v1.ReadRequest) (*
 	// get Product data
 	var td v1.ProductProto
 	var date time.Time
-	if err := rows.Scan(&td.Id, &td.Name, &td.Price, &td.Unit, &td.Category, &td.Creator, &td.Description, &date); err != nil {
+	if err := rows.Scan(&td.Id, &td.Name, &td.Price, &td.Creator, &td.Unit, &td.Category, &td.Description, &date); err != nil {
 		return nil, status.Error(codes.Unknown, "failed to retrieve field values from Product row-> "+err.Error())
 	}
 	td.Date, err = ptypes.TimestampProto(date)
